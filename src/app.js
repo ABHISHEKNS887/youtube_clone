@@ -10,7 +10,7 @@ app.use(cors({
 }))
 
 app.use(express.json({limit: "16kb"})); // Setting limit for JSON responses.
-app.use(express.urlencoded({extended: true, limit: "16kb"})); 
+app.use(express.urlencoded({extended: true, limit: "16kb"})); // converting url to readable we use urlencoded. like abhi%20shek.
 app.use(express.static('public')) // Storing the files.
 app.use(cookieParser());
 

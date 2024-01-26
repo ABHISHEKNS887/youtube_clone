@@ -6,7 +6,7 @@ const asyncHandler = (requestHandler) => {
 
 export { asyncHandler }
 
-// Higher order function: calling a function as paramneter.
+// Higher order function: calling a function as paramneter or return the function.
 
 // const asyncHandler = () => {}
 // const asyncHandler = (func) => () => {}
