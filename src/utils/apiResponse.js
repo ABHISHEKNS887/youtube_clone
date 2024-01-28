@@ -6,4 +6,6 @@ class ApiResponse {
         this.success = statusCode < 400
     }
 }
+
+export { ApiResponse }
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
