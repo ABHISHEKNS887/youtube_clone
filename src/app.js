@@ -17,4 +17,13 @@ app.use(cookieParser());
 // Middleware: Middleware is a function that receives the request and response objects. 
 // Most tasks that the middleware functions perform are: Execute any code. Update or modify the request and the response objects. 
 // Finish the request-response cycle
+
+// import router
+import userRouter from './routes/user.route.js';
+
+// router declaration.
+app.use('/api/v1/users/', userRouter);
+
+// http://localhost:8000/api/v1/users/register
+
 export {app}
