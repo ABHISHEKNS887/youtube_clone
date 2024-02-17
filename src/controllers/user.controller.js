@@ -4,6 +4,28 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
+// An access token is a temporary authorization credential granted to a user or application, allowing access to specific 
+// resources or services for a limited period.
+
+// A refresh token is a long-lived credential used to obtain new access tokens without requiring the user to re-enter 
+// their credentials, ensuring continuous access to protected resources even after access token expiration.
+
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user = await User.findById(userId);
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false });
+
+        return { accessToken, refreshToken };
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating Access and Refresh Token")
+    }
+}
+
 const registerUser = asyncHandler( async (req, res) => {
     // get user details from front end
     // validation - not empty
@@ -69,4 +91,81 @@ const registerUser = asyncHandler( async (req, res) => {
     )
 })
 
-export {registerUser}
+const loginUser = asyncHandler (async (req, res) => {
+    // req body -> data
+    // username or email 
+    // find user
+    // password check
+    // access and refresh token 
+    // send cookies
+
+    const {userName, email, password} = req.body
+
+    if (!userName && !email) {
+        throw new ApiError(400, "UserName and Email is required.")
+    }
+
+    const existedUser = await User.findOne({
+        $or: [{userName}, {email}]
+    })
+
+    if (!existedUser) {
+        throw new ApiError(404, "User does not exist.")
+    }
+
+    const isPasswordValid = await existedUser.isPasswordCorrect(password)
+    console.log(isPasswordValid)
+
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Incorrect Password.")
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(existedUser._id)
+
+    const loggedInUser = await User.findById(existedUser._id).select(" -password -refreshToken")
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User logged in successfully"
+        )
+    )
+
+})
+
+const logoutUser = asyncHandler( async(req, res) => {
+    User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: { refresToken: undefined},
+        },
+        {
+            new: true
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out successfully"))
+})
+
+export {registerUser, loginUser, logoutUser}
