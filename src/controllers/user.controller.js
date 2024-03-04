@@ -3,7 +3,8 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import { jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const OPTIONS = {
     httpOnly: true,
@@ -147,10 +148,10 @@ const loginUser = asyncHandler ( async (req, res) => {
 })
 
 const logoutUser = asyncHandler( async(req, res) => {
-    User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: { refresToken: undefined},
+            $unset: { refreshToken: 1}, // This will remove the filed from the document.
         },
         {
             new: true // This will return the data after update.
@@ -174,25 +175,25 @@ const refreshAccessToken = asyncHandler( async(req, res) => {
         try {
             const decodedToken =  jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
     
-            const user = await User.findOne(decodedToken?._id)
+            const user = await User.findById(decodedToken?._id)
     
             if (!user){
                 throw new ApiError(401, "Invalid Refresh Token")
             }
     
-            if (incomingRefreshToken !== user.refresToken){
+            if (incomingRefreshToken !== user.refreshToken){
                 throw new ApiError(401, "Refresh Token is expired or used")
             }
     
-            const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
+            const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
     
             return res
             .status(200)
             .cookie("accessToken", accessToken, OPTIONS)
-            .cookie("refreshToken", newRefreshToken, OPTIONS)
+            .cookie("refreshToken", refreshToken, OPTIONS)
             .json( new ApiResponse(
                 200,
-                {accessToken: accessToken, refreshToken: newRefreshToken},
+                {accessToken: accessToken, refreshToken: refreshToken},
                 "Access Token Refreshed"
             ))
         } catch (error) {
@@ -317,10 +318,10 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
             throw new ApiError(404, "Username is missing")
         }
 
-        const channel = User.aggregate([
+        const channel = await User.aggregate([
             {
                 $match: {
-                    username: username?.tolowercase()
+                    userName: username?.toLowerCase()
                 }
             },
             {
@@ -349,7 +350,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
                     },
                     isSubscribed: {
                         $cond: {
-                            $if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                            if: {$in: [req.user?._id, "$subscribers.subscriber"]},
                             then: true,
                             else: false
                         }
@@ -359,7 +360,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
             {
                 $project: {
                     fullName: 1,
-                    username: 1,
+                    userName: 1,
                     email: 1,
                     avatar: 1,
                     coverImage: 1,
@@ -386,7 +387,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     const user = User.aggregate([
         {
             $match: {
-                _id: new mongoose.Type.ObjectId(req.user._id)
+                _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
         {
@@ -405,8 +406,8 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                             {
                                 $project: {
                                     fullName: 1,
-                                    username: 1,
-                                    avatarUrl: 1
+                                    userName: 1,
+                                    avatar: 1
                                 }
                             }
                         ]
