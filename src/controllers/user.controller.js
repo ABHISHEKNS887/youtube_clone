@@ -424,10 +424,12 @@ const getWatchHistory = asyncHandler(async(req, res) => {
         }
     ])
 
+    const data = Array.isArray(user) && user.length > 0? user[0].watchHistory: {}
+
     return res
     .status(200)
     .json(new ApiResponse(200, 
-        user[0].watchHistory,
+        data,
         "Watch History fetched successfully"))
 })
 
