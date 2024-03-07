@@ -272,7 +272,7 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
             new: true
         }).select("-password")
 
-    await deleteOnCloudinary(avatarLocalPath)
+    await deleteOnCloudinary(avatarLocalPath, "image") //TODO:
     
     return res
     .status(200)
@@ -303,7 +303,7 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
             new: true
         }).select("-password")
 
-    await deleteOnCloudinary(coverImageLocalPath)
+    await deleteOnCloudinary(coverImageLocalPath, "image")
     
     return res
     .status(200)

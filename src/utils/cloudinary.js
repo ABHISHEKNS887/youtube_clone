@@ -26,10 +26,19 @@ const uploadOnCloudinary = async (localfilepath) => {
     }
 }
 
-const deleteOnCloudinary = async (localfilepath) => {
+const deleteOnCloudinary = async (url, resource_type) => {
+    // Split the URL by '/'
+    const parts = url.split('/');
+
+    // Get the second-to-last part which contains the ID
+    const idWithExtension = parts[parts.length - 1];
+
+    // Remove the file extension '.jpg' to get the ID only
+    const id = idWithExtension.split('.')[0];
+
     try {
-        if (!localfilepath) return null;
-        const response = await cloudinary.uploader.destroy(localfilepath)
+        if (!id) return null;
+        const response = await cloudinary.api.delete_resources([id], {"resource_type": resource_type});
         return response
     } catch (error) {
         return null;
