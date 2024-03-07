@@ -182,4 +182,5 @@ const togglePublishStatus = asyncHandler(async(req, res) => {
     .json(new ApiResponse(200, {}, `Published Status updated to ${toggle}`))
     
 })
-export {getAllVideos, publishVideo, getVideoById, updateVideoById, deleteVideoById, togglePublishStatus}
+
+export {getAllVideos, publishVideo, getVideoById, updateVideoById, deleteVideoById, togglePublishStatus, verifyVideo}
