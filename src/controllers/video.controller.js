@@ -79,6 +79,11 @@ const getVideoById = asyncHandler( async(req, res) => {
 
     const video = await verifyVideo(videoId);
 
+    // Increment the views field by 1
+    video.views += 1;
+
+    await video.save();
+
     res
     .status(200)
     .json(new ApiResponse(200, video, "Video details fetched successfully"))
