@@ -27,6 +27,7 @@ import tweetRouter from './routes/tweet.route.js';
 import likeRouter from './routes/like.route.js';
 import Subscriptionrouter from './routes/subscription.route.js';
 import playListRouter from './routes/playlist.route.js';
+import dashBoardRouter from './routes/dashboard.route.js';
 
 // router declaration.
 app.use('/api/v1/users/', userRouter);
@@ -44,6 +45,8 @@ app.use("/api/v1/likes/", likeRouter)
 app.use("/api/v1/subscriptions/", Subscriptionrouter)
 
 app.use("/api/v1/playlist/", playListRouter)
+
+app.use("/api/v1/dashboard/", dashBoardRouter)
 
 // http://localhost:8000/api/v1/users/register
 
