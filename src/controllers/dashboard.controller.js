@@ -43,7 +43,39 @@ const getChannelStats = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, channelStats, "Channel stats fetched successfully"))
 
-
 });
 
-export {getChannelStats}
+const getChannelVideos = asyncHandler( async(req, res) => {
+    // Get all the videos uploaded by the channel
+    const {page = 1, limit = 10} = req.query;
+
+    // Extract page number and limit from req.query
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+
+    // Calculate startIndex and endIndex for pagination
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const videos = await Video.find({
+        owner: req.user._id
+    }).select("-owner").skip(skip).limit(limitNumber)
+
+    if (!videos) {
+        throw new ApiError(404, "No videos found")
+    }
+
+    // Count total number of videos
+    const totalVideos = await Video.countDocuments({owner: req.user._id})
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalVideos / limitNumber);
+
+    res
+    .status(200)
+    .json(new ApiResponse(200, {
+        totalVideos: totalVideos,
+        totalPages: totalPages,
+        videos: videos}, "Videos fetched successfully"))
+})
+
+export {getChannelStats, getChannelVideos}
