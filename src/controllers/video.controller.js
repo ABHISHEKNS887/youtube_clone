@@ -15,8 +15,63 @@ async function verifyVideo(videoId) {
 }
 
 const getAllVideos = asyncHandler( async(req, res) => {
-     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+     const { page = 1, limit = 10, query, sortBy = 'title', sortType = 'asc', userId } = req.query
     //Get all videos based on query, sort, pagination
+
+    // Create filter based on query
+    const filter = {};
+    if (query) {
+        filter.$or = [
+            { title: { $regex: query, $options: 'i' } } // Case-insensitive search in title
+            // { description: { $regex: query, $options: 'i' } }, // Case-insensitive search in description
+        ];
+    }
+    else new ApiError(404, "Query not found")
+
+    // Create sort object based on sortBy and sortType
+    const sort = {};
+    if (sortBy && sortType) {
+        sort[sortBy] = sortType === 'asc' ? 1 : -1;
+    }
+
+    // Create pagination options
+    const options = {
+        limit: parseInt(limit),
+        skip: (parseInt(page) - 1) * parseInt(limit),
+    };
+
+    // Define user filter if userId is provided
+    if (userId) {
+        filter.owner = userId;
+    }
+    else filter.owner = req.user?._id
+
+    try {
+        // Query videos based on filter, sort, and pagination
+        const videos = await Video.find(filter)
+            .sort(sort)
+            .skip(options.skip)
+            .limit(options.limit)
+            .exec();
+
+        // Get total count of videos for pagination
+        const totalCount = await Video.countDocuments(filter);
+
+        res.status(200)
+        .json(new ApiResponse(200, {
+            data: videos,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalCount,
+                totalPages: Math.ceil(totalCount / parseInt(limit)),
+            },
+        }, "Videos fetched successfully"));
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+
 })
 
 const publishVideo = asyncHandler( async(req, res) => {
