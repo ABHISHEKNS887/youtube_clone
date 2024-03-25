@@ -211,22 +211,19 @@ const deleteVideoById = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async(req, res) => {
     const { videoId } = req.params;
-    const {toggle} = req.body;
 
     if (!videoId) {
         throw new ApiError(404, "Video Id is required")
     }
-    
-    if (!("toggle" in req.body)) {
-        throw new ApiError(404, "toggle is required")
-    }
 
-    await verifyVideo(videoId);
+    const video = await verifyVideo(videoId);
+
+    const isPublished = video.isPublished
 
     const updatedVideo = await Video.findByIdAndUpdate(videoId,
         {
             $set: {
-                isPublished: toggle
+                isPublished: isPublished ? false : true
             }
         },
         {
@@ -239,7 +236,7 @@ const togglePublishStatus = asyncHandler(async(req, res) => {
 
     res
     .status(200)
-    .json(new ApiResponse(200, {}, `Published Status updated to ${toggle}`))
+    .json(new ApiResponse(200, {}, `Published Status updated to ${updatedVideo.isPublished}`))
     
 })
 
