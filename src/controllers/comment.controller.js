@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { Comment } from "../models/comment.model.js";
+import { Like } from "../models/like.model.js";
 import { verifyVideo } from "./video.controller.js";
 
 async function verifyComment(commentId) {
@@ -132,6 +133,8 @@ const deleteComment = asyncHandler(async (req, res) => {
      await verifyComment(commentId)
 
      const deleteComment = await Comment.findByIdAndDelete(commentId);
+
+     await Like.deleteMany({comment : commentId})
 
      if (!deleteComment) {
         throw new ApiError(500, "Something went wrong while deleting comment")

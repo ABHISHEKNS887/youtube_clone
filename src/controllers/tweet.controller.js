@@ -1,4 +1,5 @@
 import {Tweet} from "../models/tweet.model.js";
+import {Like} from "../models/like.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -88,6 +89,8 @@ const deleteTweet = asyncHandler( async(req, res) => {
     }
 
     const tweet = await Tweet.findByIdAndDelete(tweetId);
+
+    await Like.deleteMany({tweet : tweetId})
 
     if (!tweet) {
         throw new ApiError(404, "tweet id not found.")

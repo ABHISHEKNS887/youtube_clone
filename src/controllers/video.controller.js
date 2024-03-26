@@ -3,6 +3,8 @@ import {ApiError} from "../utils/apiError.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import {User} from "../models/user.model.js";
 import {Video} from "../models/video.model.js";
+import {Comment} from "../models/comment.model.js";
+import {Like} from "../models/like.model.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
 async function verifyVideo(videoId) {
@@ -199,13 +201,17 @@ const deleteVideoById = asyncHandler(async (req, res) => {
 
     const deleteVideo = await Video.findByIdAndDelete(videoId)
 
+    await Comment.deleteMany({video : videoId})
+
+    await Like.deleteMany({video : videoId})
+
     if (!deleteVideo){
         throw new ApiError(500, "Something went wrong while deleteing video by id")
     }
 
     res
     .status(200)
-    .json(new ApiResponse(200, {}, "User deleted Successfully"))
+    .json(new ApiResponse(200, {}, "Video deleted Successfully"))
 
 })
 
