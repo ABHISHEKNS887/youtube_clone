@@ -196,6 +196,10 @@ const deleteVideoById = asyncHandler(async (req, res) => {
 
     const video = await verifyVideo(videoId);
 
+    if (!video.owner.equals(req.user?._id)){
+        throw new ApiError(404, "Video Id not found")
+    }
+
     await deleteOnCloudinary(video?.videoFile, "video")
     await deleteOnCloudinary(video?.thumbnail, "image")
 

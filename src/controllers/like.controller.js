@@ -26,7 +26,7 @@ const toggleVideoLike = asyncHandler (async (req, res) => {
         likedBy: req.user?._id
     })
 
-    if (findVideoLike.length > 0){
+    if ((findVideoLike.length > 0) && (findVideoLike[0].likedBy.equals(req.user?._id))){
         await Like.deleteOne({
         video: videoId,
         likedBy: req.user?._id
@@ -68,7 +68,7 @@ const toggleCommentLike = asyncHandler (async (req, res) => {
         likedBy: req.user?._id
     })
 
-    if (findCommentLike.length > 0) {
+    if ((findCommentLike.length > 0) && (findCommentLike[0].likedBy.equals(req.user?._id))){
         await Like.deleteOne({
         comment: commentId,
         likedBy: req.user?._id
