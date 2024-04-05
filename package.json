@@ -21,6 +21,7 @@
     "prettier": "^3.1.1"
   },
   "dependencies": {
+    "autocannon": "^7.15.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.6",

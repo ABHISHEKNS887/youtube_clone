@@ -137,13 +137,16 @@ const getVideoById = asyncHandler( async(req, res) => {
     const video = await verifyVideo(videoId);
 
     // Increment the views field by 1
-    video.views += 1;
+    // video.views += 1; Removed race condition.
 
-    await video.save();
+    // try this
+    const updateViews  = await Video.findByIdAndUpdate(videoId, {
+        $inc: {views: 1}
+    })
 
     res
     .status(200)
-    .json(new ApiResponse(200, video, "Video details fetched successfully"))
+    .json(new ApiResponse(200, updateViews, "Video details fetched successfully"))
 })
 
 const updateVideoById = asyncHandler(async(req, res) => {
